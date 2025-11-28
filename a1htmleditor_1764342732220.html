@@ -1,0 +1,117 @@
+import React, { useState } from 'react';
+
+// Single-file React component for a simple e‑commerce storefront.
+// - Tailwind CSS utility classes are used for styling (assumes Tailwind is configured).
+// - Currency default set to AED.
+// - Checkout action is a stub (replace with real payment integration like Stripe, PayTabs, Paymob).
+// - Meant as a launchpad: product grid, cart, basic checkout form, order summary.
+
+export default function DubaiStore() {
+  const CURRENCY = 'AED';
+  const [products] = useState([
+    { id: 1, name: 'Sandstone Lamp', price: 299.0, desc: 'Handcrafted lamp — perfect for a Dubai home.', img: 'https://placehold.co/400x300?text=Lamp' },
+    { id: 2, name: 'Arabic Coffee Set', price: 149.0, desc: 'Traditional dallah & cups set.', img: 'https://placehold.co/400x300?text=Coffee+Set' },
+    { id: 3, name: 'Camel Leather Bag', price: 549.0, desc: 'Premium camel-leather crossbody.', img: 'https://placehold.co/400x300?text=Bag' },
+  ]);
+
+  const [cart, setCart] = useState([]);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [customer, setCustomer] = useState({ name: '', email: '', phone: '', address: '' });
+
+  function addToCart(product) {
+    setCart(prev => {
+      const existing = prev.find(p => p.id === product.id);
+      if (existing) return prev.map(p => p.id === product.id ? { ...p, qty: p.qty + 1 } : p);
+      return [...prev, { ...product, qty: 1 }];
+    });
+  }
+
+  function updateQty(id, qty) {
+    setCart(prev => prev.map(p => p.id === id ? { ...p, qty } : p).filter(p => p.qty > 0));
+  }
+
+  function removeItem(id) {
+    setCart(prev => prev.filter(p => p.id !== id));
+  }
+
+  function cartSubtotal() {
+    return cart.reduce((s, p) => s + p.price * p.qty, 0);
+  }
+
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-AE', { style: 'currency', currency: CURRENCY }).format(amount);
+  }
+
+  function startCheckout() {
+    if (cart.length === 0) return alert('Votre panier est vide.');
+    setShowCheckout(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function placeOrder() {
+    // === IMPORTANT ===
+    // Replace this stub with a real payment flow (Stripe Checkout, PayTabs, Paymob, etc.)
+    // Validate customer info server-side, create an order record, then redirect to provider.
+    if (!customer.name || !customer.email) {
+      return alert('Merci de renseigner au minimum votre nom et votre email.');
+    }
+
+    const order = {
+      id: 'ORD-' + Date.now(),
+      customer,
+      items: cart,
+      total: cartSubtotal(),
+      currency: CURRENCY,
+      createdAt: new Date().toISOString(),
+    };
+
+    console.log('Order (demo):', order);
+    alert('Commande simulée : ' + order.id + '\nIntégrez ici votre passerelle de paiement pour finaliser.');
+
+    // Clear cart for demo
+    setCart([]);
+    setShowCheckout(false);
+    setCustomer({ name: '', email: '', phone: '', address: '' });
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <header className="bg-white shadow">
+        <div className="mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Dubai Market</h1>
+            <p className="text-sm text-gray-500">Boutique en ligne — livraison UAE</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button onClick={() => window.location.reload()} className="text-sm">Accueil</button>
+            <button onClick={() => document.getElementById('cart').scrollIntoView({behavior:'smooth'})} className="bg-blue-600 text-white px-3 py-2 rounded text-sm">Panier ({cart.reduce((s,p)=>s+p.qty,0)})</button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {products.map(prod => (
+            <article key={prod.id} className="bg-white rounded shadow-sm overflow-hidden">
+              <img src={prod.img} alt={prod.name} className="w-full h-48 object-cover" />
+              <div className="p-4">
+                <h3 className="font-semibold">{prod.name}</h3>
+                <p className="text-sm text-gray-500">{prod.desc}</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <strong>{formatCurrency(prod.price)}</strong>
+                  <button onClick={() => addToCart(prod)} className="bg-green-600 text-white px-3 py-1 rounded text-sm">Ajouter</button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <aside id="cart" className="mt-10">
+          <div className="bg-white p-4 rounded shadow-sm">
+            <h2 className="font-semibold text-lg">Panier</h2>
+            {cart.length === 0 ? (
+              <p className="text-sm text-gray-500 mt-3">Votre panier est vide.</p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {cart.map(item => (
+                
